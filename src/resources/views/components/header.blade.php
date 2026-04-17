@@ -1,33 +1,38 @@
 <header class="header">
     <div class="header__logo">
-        <a href="/"><img src="{{ asset('img/logo.png') }}" alt="ロゴ"></a>
+        <a href="/">
+            <img src="/img/logo.png" alt="COACHTECH">
+        </a>
     </div>
-    @if( !in_array(Route::currentRouteName(), ['register', 'login', 'verification.notice']) )
-    <form class="header_search" action="/" method="get">
-        @csrf
-        <input id="inputElement" class="header_search--input" type="text" name="search" placeholder="なにをお探しですか？">
-        <button id="buttonElement" class="header_search--button">
-            <img src="{{ asset('img/search_icon.jpeg') }}" alt="検索アイコン" style="height:100%;">
-        </button>
-    </form>
-    <nav class="header__nav">
-        <ul>
-            @if(Auth::check())
-            <li>
-                <form action="/logout" method="post">
-                    @csrf
-                    <button class="header__logout">ログアウト</button>
-                </form>
-            </li>
-            <li><a href="/mypage">マイページ</a></li>
-            @else
-            <li><a href="/login">ログイン</a></li>
-            <li><a href="/register">会員登録</a></li>
-            @endif
-            <a href="/sell">
-                <li class="header__btn">出品</li>
-            </a>
-        </ul>
-    </nav>
-    @endif
+
+        <nav class="header__nav">
+            <ul class="header__nav-list">
+                @if(Auth::guard('admin')->check())
+                    <li class="header__nav-item"><a href="{{ route('admin.attendance.list') }}"
+                            class="header__nav-link">勤怠一覧</a></li>
+                    <li class="header__nav-item"><a href="{{ route('admin.staff.list') }}"
+                            class="header__nav-link">スタッフ一覧</a></li>
+                    <li class="header__nav-item"><a href="{{ route('request.list') }}" class="header__nav-link">申請一覧</a></li>
+                    <li class="header__nav-item">
+                        <form action="{{ route('admin.logout') }}" method="post" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="header__nav-link logout-button">ログアウト</button>
+                        </form>
+                    </li>
+                @elseif(Auth::guard('web')->check())
+                    <li class="header__nav-item"><a href="{{ route('attendance.index') }}" class="header__nav-link">勤怠</a>
+                    </li>
+                    <li class="header__nav-item"><a href="{{ route('attendance.list') }}" class="header__nav-link">勤怠一覧</a>
+                    </li>
+                    <li class="header__nav-item"><a href="{{ route('request.list') }}" class="header__nav-link">申請</a></li>
+                    <li class="header__nav-item">
+                        <form action="{{ route('logout') }}" method="post" style="display: inline;">
+                            @csrf
+                            <button type="submit" class="header__nav-link logout-button">ログアウト</button>
+                        </form>
+                    </li>
+                @endif
+            </ul>
+        </nav>
+    </div>
 </header>

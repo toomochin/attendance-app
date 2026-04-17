@@ -43,5 +43,12 @@ services:
         ports:
             - 8080:80
 
+    mailpit:
+        image: axllent/mailpit:latest
+        container_name: flea_mailpit
+        ports:
+        - "8025:8025"  # Web UI
+        - "1025:1025"  # SMTP
+
 volumes:
     db-data:

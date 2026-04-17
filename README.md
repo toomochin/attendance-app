@@ -1,4 +1,6 @@
-# 環境構築
+# 勤怠管理システム
+
+## 環境構築
 
 1. Dockerを起動する
 
@@ -11,22 +13,21 @@ make init
 ※Makefileは実行するコマンドを省略することができる便利な設定ファイルです。コマンドの入力を効率的に行えるようになります。<br>
 
 ## メール認証
-mailtrapというツールを使用しています。<br>
-以下のリンクから会員登録をしてください。　<br>
-https://mailtrap.io/
+開発環境ではメール確認用に Mailpit を使用しています。
+プロジェクト起動後、ブラウザで以下のURLにアクセスすると、システムから送信されたメール（会員登録時の認証メール等）を確認できます。
 
-メールボックスのIntegrationsから 「laravel 7.x and 8.x」を選択し、　<br>
-.envファイルのMAIL_MAILERからMAIL_ENCRYPTIONまでの項目をコピー＆ペーストしてください。　<br>
-MAIL_FROM_ADDRESSは任意のメールアドレスを入力してください。　
+http://localhost:8025
 
-## Stripeについて
-コンビニ支払いとカード支払いのオプションがありますが、決済画面にてコンビニ支払いを選択しますと、レシートを印刷する画面に遷移します。そのため、カード支払いを成功させた場合に意図する画面遷移が行える想定です。<br>
+.envファイルの設定は以下の通りにしてください：
 
-また、StripeのAPIキーは以下のように設定をお願いいたします。
-```
-STRIPE_PUBLIC_KEY="パブリックキー"
-STRIPE_SECRET_KEY="シークレットキー"
-```
+MAIL_MAILER=smtp
+MAIL_HOST=mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=admin@example.com
+MAIL_FROM_NAME="${APP_NAME}"
 
 以下のリンクは公式ドキュメントです。<br>
 https://docs.stripe.com/payments/checkout?locale=ja-JP
@@ -37,107 +38,61 @@ https://docs.stripe.com/payments/checkout?locale=ja-JP
 | id | bigint | ◯ |  | ◯ |  |
 | name | varchar(255) |  |  | ◯ |  |
 | email | varchar(255) |  | ◯ | ◯ |  |
-| email_verified_at | timestamp |  |  |  |  |
 | password | varchar(255) |  |  | ◯ |  |
-| remember_token | varchar(100) |  |  |  |  |
+| role | int |  |  | ◯ |  |0:一般, 1:管理者
 | created_at | timestamp |  |  |  |  |
 | updated_at | timestamp |  |  |  |  |
 
-### profilesテーブル
+### attendancesテーブル
 | カラム名 | 型 | primary key | unique key | not null | foreign key |
 | --- | --- | --- | --- | --- | --- |
 | id | bigint | ◯ |  | ◯ |  |
 | user_id | bigint |  |  | ◯ | users(id) |
-| img_url | varchar(255) |  |  |  |  |
-| postcode | varchar(255) |  |  | ◯ |  |
-| address | varchar(255) |  |  | ◯ |  |
-| building | varchar(255) |  |  |  |  |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
+| date | date |  |  | ◯ |  |
+| punch_in | time |  |  | ◯ |  |
+| punch_out | time |  |  |  |  |
+| break_in | time |  |  |  |  |
+| break_out | time |  |  |  |  |
+| break2_in | time |  |  |  |  |
+| break2_out | time |  |  |  |  |
 
-### itemsテーブル
+### attendance_correct_requestsテーブル
 | カラム名 | 型 | primary key | unique key | not null | foreign key |
 | --- | --- | --- | --- | --- | --- |
 | id | bigint | ◯ |  | ◯ |  |
+| attendance_id | bigint |  |  | ◯ | attendances(id) |
 | user_id | bigint |  |  | ◯ | users(id) |
-| condition_id | bigint |  |  | ◯ | condtions(id) |
-| name | varchar(255) |  |  | ◯ |  |
-| price | int |  |  | ◯ |  |
-| brand | varchar(255) |  |  |  |  |
-| description | varchar(255) |  |  | ◯ |  |
-| img_url | varchar(255) |  |  | ◯ |  |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
-
-### commentsテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| user_id | bigint |  |  | ◯ | users(id) |
-| item_id | bigint |  |  | ◯ | items(id) |
-| comment | varchar(255) |  |  | ◯ |  |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
-
-### likesテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| user_id | bigint |  | ◯(item_idとの組み合わせ) | ◯ | users(id) |
-| item_id | bigint |  | ◯(user_idとの組み合わせ) | ◯ | items(id) |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
-
-### sold_itemsテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| user_id | bigint |  |  | ◯ | users(id) |
-| item_id | bigint |  |  | ◯ | items(id) |
-| sending_postcode | varchar(255) |  |  | ◯ |  |
-| sending_address | varchar(255) |  |  | ◯ |  |
-| sending_building | varchar(255) |  |  |  |  |
-| created_at | created_at |  |  |  |  |
-| updated_at | updated_at |  |  |  |  |
-
-### category_itemsテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| item_id | bigint |  | ◯(category_idとの組み合わせ) | ◯ | items(id) |
-| category_id | bigint |  | ◯(item_idとの組み合わせ) | ◯ | categories(id) |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
-
-### categoriesテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| category | varchar(255) |  |  | ◯ |  |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
-
-### conditionsテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| condition | varchar(255) |  |  | ◯ |  |
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
+| punch_in | time |  |  | ◯ |  |
+| punch_out | time |  |  | ◯ |  |
+| break_in | time |  |  |  |  |
+| break_out | time |  |  |  |  |
+| break2_in | time |  |  |  |  |
+| break2_out | time |  |  |  |  |
+| remark | text |  |  | ◯ |  |
+| status | int |  |  | ◯ |  |
 
 ## ER図
 ![alt](ER.png)
 
-## テストアカウント
-name: 一般ユーザ  
-email: general1@gmail.com  
-password: password  
--------------------------
-name: 一般ユーザ  
-email: general2@gmail.com  
-password: password  
--------------------------
+##テストアカウント
+本システムには「管理者」と「一般ユーザー」の2つの権限があります。
+
+管理者
+email: admin@example.com
+password: password
+role: 1
+
+一般スタッフ
+email: staff@example.com
+password: password
+role: 0
+
+※ php artisan db:seed を実行することで、上記アカウントが作成されます。
 
 ## PHPUnitを利用したテストに関して
-以下のコマンド:  
-```
+システム全体の整合性を確認するために、以下のコマンドでテストを実行できます。
+php artisan test
+
 //テスト用データベースの作成
 docker-compose exec mysql bash
 mysql -u root -p
@@ -147,9 +102,3 @@ create database test_database;
 docker-compose exec php bash
 php artisan migrate:fresh --env=testing
 ./vendor/bin/phpunit
-```
-※.env.testingにもStripeのAPIキーを設定してください。  
-
-## 生徒様へ
-普段よりお世話になっております。  
-こちらの模範解答に関するご質問、またこちらに不備を見つけた、などの際は気兼ねなく申し付けください。
