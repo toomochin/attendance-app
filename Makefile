@@ -6,7 +6,7 @@ init:
 	mv ./src/public/img/copy_storage_img/*.jpg ./src/storage/app/public/img
 	docker-compose exec php php artisan key:generate
 	docker-compose exec php php artisan storage:link
-	docker-compose exec php chmod -R 777 storage bootstrap/cache
+	docker-compose exec php chmod -R 777 src/storage src/bootstrap/cache
 	@make fresh
 
 fresh:
