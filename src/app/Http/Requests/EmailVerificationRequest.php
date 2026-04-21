@@ -9,7 +9,7 @@ class EmailVerificationRequest extends FormRequest
 {
     protected $unauthenticated_user;
     protected $guard;
-    
+
     public function __construct(StatefulGuard $guard)
     {
         $this->unauthenticated_user = session()->get('unauthenticated_user');

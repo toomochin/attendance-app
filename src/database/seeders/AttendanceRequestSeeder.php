@@ -40,10 +40,10 @@ class AttendanceRequestSeeder extends Seeder
                 'attendance_id' => $attendance1->id,
                 'user_id' => $user->id,
                 'punch_in' => '09:00:00',
-                'punch_out' => '18:30:00', // 残業したという体で修正申請
+                'punch_out' => '18:30:00',
                 'break_in' => '12:00:00',
                 'break_out' => '13:00:00',
-                'break2_in' => '15:00:00', // 2回目休憩の追加申請
+                'break2_in' => '15:00:00',
                 'break2_out' => '15:15:00',
                 'remark' => '打刻を忘れたため修正をお願いします。',
                 'status' => 0, // 0: 承認待ち

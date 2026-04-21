@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Attendance; // 実際には申請専用のテーブル(AttendanceCorrectRequest等)との紐付けが理想的です
+use App\Models\Attendance;
 
 class AdminRequestController extends Controller
 {

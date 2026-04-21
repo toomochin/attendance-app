@@ -17,8 +17,6 @@ make init
 
 http://localhost:8025
 
-.envファイルの設定は以下の通りにしてください：
-
 .envファイルの設定（初期設定済み）：
 
 MAIL_HOST=mailpit
@@ -72,11 +70,10 @@ https://docs.stripe.com/payments/checkout?locale=ja-JP
 
 ##テストアカウント
 php artisan db:seed を実行することで、以下のアカウントが作成されます。
-本システムには「管理者」と「一般ユーザー」の2つの権限があります。
 
 管理者
-メールアドレス: admin@example.com
-パスワード: password123
+メールアドレス: admin@gmail.com
+パスワード: password
 権限: 管理者 (role: 1)
 
 一般スタッフ1

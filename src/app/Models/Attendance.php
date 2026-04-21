@@ -14,10 +14,10 @@ class Attendance extends Model
         'date',
         'punch_in',
         'punch_out',
-        'break_in',    // break_start から変更
-        'break_out',   // break_end から変更
-        'break2_in',   // break2_start から変更
-        'break2_out',  // break2_end から変更
+        'break_in',
+        'break_out',
+        'break2_in',
+        'break2_out',
         'remark',
         'request_status',
     ];

@@ -13,9 +13,9 @@ class UserFactory extends Factory
             'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password' => bcrypt('password'), // テストで使いやすいよう固定
+            'password' => bcrypt('password'),
             'remember_token' => Str::random(10),
-            'role' => 0, // デフォルトは一般スタッフ
+            'role' => 0,
         ];
     }
 

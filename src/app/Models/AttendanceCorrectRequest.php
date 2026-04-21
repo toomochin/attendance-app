@@ -22,7 +22,7 @@ class AttendanceCorrectRequest extends Model
         'status',
     ];
     /**
-     * ★これを追加：勤怠データ（Attendance）とのリレーション
+     * 勤怠データ（Attendance）とのリレーション
      */
     public function attendance()
     {
@@ -30,7 +30,7 @@ class AttendanceCorrectRequest extends Model
     }
 
     /**
-     * ★これを追加：ユーザー（User）とのリレーション
+     * ユーザー（User）とのリレーション
      */
     public function user()
     {

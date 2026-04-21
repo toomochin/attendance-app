@@ -10,7 +10,7 @@ use App\Http\Requests\AdminLoginRequest;
 class AdminAuthController extends Controller
 {
     /**
-     * PG07: 管理者ログイン画面の表示 
+     * PG07: 管理者ログイン画面の表示
      */
     public function showLogin()
     {
@@ -20,7 +20,7 @@ class AdminAuthController extends Controller
     /**
      * 管理者ログイン処理
      */
-    public function login(AdminLoginRequest $request) // ここを差し替え
+    public function login(AdminLoginRequest $request)
     {
         // 既にバリデーション済みのデータを取得
         $credentials = $request->only('email', 'password');

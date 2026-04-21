@@ -34,7 +34,7 @@ class UsersTableSeeder extends Seeder
             'role' => 0, // 一般
         ]);
 
-        // 管理者ユーザ (role: 1) も追加しておくとテストが楽になります
+        // 管理者ユーザ (role: 1)
         User::create([
             'name' => '管理者ユーザ',
             'email' => 'admin@gmail.com',

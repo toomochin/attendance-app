@@ -22,10 +22,10 @@ class AttendanceSeeder extends Seeder
                 'date' => $today,
                 'punch_in' => '09:00:00',
                 'punch_out' => '18:00:00',
-                // カラム名を in / out に修正
+                // 休憩
                 'break_in' => '12:00:00',
                 'break_out' => '13:00:00',
-                // 休憩2（必要であればここに追加、不要なら未記述でOK）
+                // 休憩2
                 'break2_in' => null,
                 'break2_out' => null,
             ]);

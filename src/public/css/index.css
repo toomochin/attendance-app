@@ -1,75 +1,81 @@
-.items{
+/* 一覧の並び（打刻ボタンや履歴カードの並び） */
+.items {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-    gap: 35px 10px;
+    gap: 30px 20px;
 }
 
-.sold{
-    position: relative;
-}
-
-.sold::before {
-    content: "";
-    top: 0;
-    left: 0;
-    border-bottom: 4em solid transparent;
-    border-left: 4em solid #c12748;
-    position: absolute;
-    z-index: 100;
-}
-.sold::after {
-    content: "Sold";
-    display: block;
-    top: 1em;
-    transform: rotate(-45deg);
-    color: #fff;
-    left: 0.2em;
-    position: absolute;
-    z-index: 101;
-}
-
-.item__img--container{
-    background-color: rgb(208, 208, 208);
-    border-radius: 5px;
+/* カード形式の枠（旧商品画像枠） */
+.item__img--container {
+    background-color: #eeeeee;
+    /* 薄いグレー（背景） */
+    border-radius: 8px;
     width: 15em;
-    height: 15em;
+    height: 10em;
+    /* 高さを少し抑えてカード風に */
     display: flex;
     justify-content: center;
     align-items: center;
-}
-
-.item__img{
-    object-fit: cover;
-    width: 100%;
-    height: 100%;
-}
-
-.item__name{
-    margin-top: 10px;
-}
-
-.border{
-    margin-top: 50px;
-}
-
-.border__list{
-    border-bottom: 1px solid #5F5F5F;
-    display: flex;
-}
-
-.border__list li:first-child{
-    padding-left: 10%;
-}
-
-.border__list li{
-    padding: 20px 80px;
+    border: 1px solid #dddddd;
+    color: #666666;
+    /* 濃いグレー（文字） */
     font-weight: bold;
 }
 
-@media (min-width: 768px) and (max-width: 850px) {
+/* テキスト部分（日付や名前） */
+.item__name {
+    margin-top: 12px;
+    font-size: 16px;
+    color: #333333;
+    /* 濃い文字色 */
+    font-weight: bold;
+    text-align: center;
+}
+
+/* タブメニュー（「勤怠一覧」と「修正申請一覧」の切り替えなど） */
+.border {
+    margin-top: 40px;
+}
+
+.border__list {
+    border-bottom: 2px solid #dddddd;
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+.border__list li {
+    padding: 15px 40px;
+    font-weight: bold;
+    color: #888888;
+    /* 非選択時は薄いグレー */
+    cursor: pointer;
+}
+
+/* 選択中のタブ（ここだけ文字を濃くする） */
+.border__list li.active {
+    color: #333333;
+    border-bottom: 3px solid #333333;
+}
+
+.border__list li:hover {
+    color: #666666;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .items {
+        justify-content: center;
+    }
+
     .item__img--container {
-        width: 25vw;
-        height: 10em;
+        width: 40vw;
+        height: 8em;
+    }
+
+    .border__list li {
+        padding: 15px 20px;
+        font-size: 14px;
     }
 }

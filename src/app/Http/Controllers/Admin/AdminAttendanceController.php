@@ -81,7 +81,6 @@ class AdminAttendanceController extends Controller
         $correctRequest->update(['status' => 1]);
 
         // 5. 承認完了後、申請一覧画面へ戻る
-        // ルート名は web.php の設定に合わせてください（例: admin.request.list）
         return redirect()->route('admin.request.list')->with('success', '修正申請を承認しました');
     }
     /**
@@ -107,7 +106,7 @@ class AdminAttendanceController extends Controller
         return view('admin.attendance.staff', [
             'staff' => $staff,
             'attendances' => $attendances,
-            'currentMonth' => $currentMonth, // format('Y/m') を消して Carbonオブジェクトのまま渡す
+            'currentMonth' => $currentMonth,
             'prevMonth' => $prevMonth,
             'nextMonth' => $nextMonth,
         ]);
@@ -140,7 +139,6 @@ class AdminAttendanceController extends Controller
             'punch_out' => $request->punch_out,
             'break_in' => $request->break_in,
             'break_out' => $request->break_out,
-            // 管理者が修正した場合は備考をどう扱うか、必要に応じて更新
         ]);
 
         return redirect()->route('admin.attendance.detail', ['id' => $id])
@@ -148,11 +146,11 @@ class AdminAttendanceController extends Controller
     }
     private function calculateTotalTimes($attendance)
     {
-        // 休憩1の分数 (break_start -> break_in に修正)
+        // 休憩1の分数
         $break1 = ($attendance->break_in && $attendance->break_out)
             ? Carbon::parse($attendance->break_in)->diffInMinutes(Carbon::parse($attendance->break_out)) : 0;
 
-        // 休憩2の分数 (break2_start -> break2_in に修正)
+        // 休憩2の分数
         $break2 = ($attendance->break2_in && $attendance->break2_out)
             ? Carbon::parse($attendance->break2_in)->diffInMinutes(Carbon::parse($attendance->break2_out)) : 0;
 
@@ -175,7 +173,7 @@ class AdminAttendanceController extends Controller
     public function exportCsv($id)
     {
         $user = User::findOrFail($id);
-        // そのユーザーの全勤怠データを取得（月などで絞り込む場合は適宜調整）
+        // そのユーザーの全勤怠データを取得
         $attendances = Attendance::where('user_id', $id)->orderBy('date', 'desc')->get();
 
         $response = new StreamedResponse(function () use ($attendances, $user) {
@@ -188,7 +186,6 @@ class AdminAttendanceController extends Controller
             fputcsv($handle, ['日付', '出勤', '退勤', '休憩合計', '勤務合計', '備考']);
 
             foreach ($attendances as $attendance) {
-                // 計算メソッドが既にある場合はそれを利用
                 $data = $this->calculateTotalTimes($attendance);
 
                 fputcsv($handle, [

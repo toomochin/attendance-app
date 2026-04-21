@@ -34,18 +34,15 @@ class AttendanceCorrectRequest extends FormRequest
     public function messages()
     {
         return [
-            // 要件: 「出勤時間もしくは退勤時間が不適切な値です」 
             'punch_in.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
             'punch_out.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
             'punch_out.after' => '出勤時間もしくは退勤時間が不適切な値です',
 
-            // 要件: 「休憩時間が不適切な値です」 
             'break_start.after' => '休憩時間が不適切な値です',
             'break_start.before' => '休憩時間が不適切な値です',
             'break_end.after' => '休憩時間が不適切な値です',
             'break_end.before' => '休憩時間が不適切な値です',
 
-            // 要件: 「備考を記入してください」 
             'remark.required' => '備考を記入してください',
         ];
     }

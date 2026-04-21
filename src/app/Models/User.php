@@ -25,7 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'role', // ★追加: roleも保存できるようにする
+        'role',
     ];
 
     /**
@@ -45,7 +45,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'role' => 'integer', // ★追加: 数値として扱うようキャスト
+        'role' => 'integer',
     ];
 
     /**
@@ -55,7 +55,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Attendance::class);
     }
-
-    // ★削除済み: profile, likes, comments, items リレーション
-    // フリマアプリ系のメソッドは消してスッキリさせました
 }

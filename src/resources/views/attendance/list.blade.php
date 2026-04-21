@@ -31,7 +31,6 @@
                             style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <span class="calendar-icon">📅</span>
                             <span style="font-size: 20px; font-weight: bold;">
-                                {{ $currentMonth->format('Y/m') }}
                             </span>
                         </div>
                     </form>

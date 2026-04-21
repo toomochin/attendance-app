@@ -46,7 +46,6 @@
                                 <td>{{ Str::limit($req->remark, 30) }}</td>
                                 <td>{{ $req->created_at->format('Y/m/d') }}</td>
                                 <td>
-                                    {{-- 詳細画面（PG05）へのリンク（作成済みなら遷移可能） --}}
                                     <a href="{{ route('attendance.detail', ['id' => $req->attendance_id]) }}"
                                         class="detail-link">詳細</a>
                                 </td>

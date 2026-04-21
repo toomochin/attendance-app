@@ -20,7 +20,6 @@ class AttendanceController extends Controller
             ->where('date', Carbon::today()->format('Y-m-d'))
             ->first();
 
-        // Blade側でも判定していますが、コントローラーから渡す変数も用意しておくと確実です
         return view('attendance.index', compact('attendance'));
     }
 
@@ -66,7 +65,7 @@ class AttendanceController extends Controller
     }
 
     /**
-     * PG02: 勤怠一覧 (テストが期待するメソッド名)
+     * PG02: 勤怠一覧
      */
     public function list(Request $request)
     {
@@ -80,7 +79,7 @@ class AttendanceController extends Controller
 
         $prevMonth = $currentMonth->copy()->subMonth()->format('Y-m');
         $nextMonth = $currentMonth->copy()->addMonth()->format('Y-m');
-        $displayMonth = $currentMonth->format('Y/m'); // テスト期待値
+        $displayMonth = $currentMonth->format('Y/m');
 
         return view('attendance.list', compact('attendances', 'currentMonth', 'prevMonth', 'nextMonth', 'displayMonth'));
     }
@@ -102,7 +101,6 @@ class AttendanceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // テスト合格のためのバリデーション。キーを in / out に統一
         $request->validate([
             'punch_in' => 'required',
             'punch_out' => 'required|after:punch_in',

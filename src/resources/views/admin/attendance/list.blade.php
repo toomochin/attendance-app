@@ -20,19 +20,15 @@
                     <span class="arrow-left"></span>← 前日
                 </a>
 
-                {{-- 中央：カレンダー機能付き表示 --}}
                 <div class="current-date-display">
                     <form action="{{ route('admin.attendance.list') }}" method="get" id=" date-form"
                         style="display: flex; align-items: center;">
-                        {{-- inputは完全に隠す --}}
                         <input type="date" name="date" id="date-input" value="{{ $currentDate }}" onchange="this.form.submit()"
                             style="display: none;">
 
-                        {{-- labelではなく、onclickイベントをつけたdivを使用 --}}
                         <div onclick="document.getElementById('date-input').showPicker()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <span class=" calendar-icon">📅</span>
                             <span style="font-size: 20px; font-weight: bold;">
-                                {{ \Carbon\Carbon::parse($currentDate)->format('Y/m/d') }}
                             </span>
                         </div>
                     </form>

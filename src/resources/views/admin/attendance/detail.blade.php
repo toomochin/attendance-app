@@ -21,11 +21,9 @@
         <div class="attendance-container">
             <h2 class="page-title">勤怠詳細</h2>
 
-            {{-- 修正保存用のフォーム (POSTに合わせる) --}}
             <form action="{{ route('admin.attendance.update', ['id' => $attendance->id]) }}" method="post"
                 class="table-card p-30">
                 @csrf
-                {{-- @method('PATCH') は削除：web.phpのRoute::postと合わせるため --}}
 
                 <table class="detail-table">
                     <tr>
