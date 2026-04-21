@@ -6,11 +6,10 @@
 
 2. プロジェクト直下で、以下のコマンドを実行する
 
-```
+```bash
 make init
 ```
-
-※Makefileは実行するコマンドを省略することができる便利な設定ファイルです。コマンドの入力を効率的に行えるようになります。<br>
+※Makefileを使用し、コンテナの起動、ライブラリインストール、DB構築、ストレージ権限の設定（chmod 777）を一括で行います。<br>
 
 ## メール認証
 開発環境ではメール確認用に Mailpit を使用しています。
@@ -20,14 +19,11 @@ http://localhost:8025
 
 .envファイルの設定は以下の通りにしてください：
 
-MAIL_MAILER=smtp
+.envファイルの設定（初期設定済み）：
+
 MAIL_HOST=mailpit
 MAIL_PORT=1025
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
 MAIL_FROM_ADDRESS=admin@example.com
-MAIL_FROM_NAME="${APP_NAME}"
 
 以下のリンクは公式ドキュメントです。<br>
 https://docs.stripe.com/payments/checkout?locale=ja-JP
@@ -75,30 +71,30 @@ https://docs.stripe.com/payments/checkout?locale=ja-JP
 ![alt](ER.png)
 
 ##テストアカウント
+php artisan db:seed を実行することで、以下のアカウントが作成されます。
 本システムには「管理者」と「一般ユーザー」の2つの権限があります。
 
 管理者
-email: admin@example.com
-password: password
-role: 1
+メールアドレス: admin@example.com
+パスワード: password123
+権限: 管理者 (role: 1)
 
-一般スタッフ
-email: staff@example.com
-password: password
-role: 0
+一般スタッフ1
+メールアドレス: general1@gmail.com
+パスワード: password
+権限: 一般 (role: 0)
 
-※ php artisan db:seed を実行することで、上記アカウントが作成されます。
+一般スタッフ2
+メールアドレス: general2@gmail.com
+パスワード: password
+権限: 一般 (role: 0)
 
-## PHPUnitを利用したテストに関して
+## テストの実行
 システム全体の整合性を確認するために、以下のコマンドでテストを実行できます。
-php artisan test
+```bash
+# 1. テスト用データベースの作成（初回のみ）
+docker-compose exec mysql mysql -u root -p -e "create database if not exists test_database;"
+# パスワードは root を入力
 
-//テスト用データベースの作成
-docker-compose exec mysql bash
-mysql -u root -p
-//パスワードはrootと入力
-create database test_database;
-
-docker-compose exec php bash
-php artisan migrate:fresh --env=testing
-./vendor/bin/phpunit
+# 2. テストの実行
+docker-compose exec php php artisan test
