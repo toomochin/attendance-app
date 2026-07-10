@@ -25,7 +25,8 @@ class FortifyServiceProvider extends ServiceProvider
         $this->app->instance(RegisterResponse::class, new class implements RegisterResponse {
             public function toResponse($request)
             {
-                return redirect('/mypage/profile');
+                // 💡 修正点1: 存在しないパスではなく、Fortify標準のメール認証通知先へリダイレクトさせます
+                return redirect('/email/verify');
             }
         });
     }
@@ -36,17 +37,23 @@ class FortifyServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
+
         Fortify::registerView(function () {
-                return view('auth.register');
+            return view('auth.register');
         });
-            
+
         Fortify::loginView(function () {
             return view('auth.login');
         });
-            
+
+        // 💡 修正点2: Fortifyにメール認証画面（Blade）の場所を教えてあげます
+        Fortify::verifyEmailView(function () {
+            return view('auth.verify-email');
+        });
+
         RateLimiter::for('login', function (Request $request) {
             $email = (string) $request->email;
-            
+
             return Limit::perMinute(10)->by($email . $request->ip());
         });
 

@@ -13,6 +13,23 @@ use Illuminate\Support\Facades\Route;
 */
 Route::middleware(['auth'])->group(function () {
 
+    // 1. メール認証待ち画面（通知画面）
+    Route::get('/email/verify', function () {
+        return view('auth.verify-email'); // 👈 作成した、または用意されているBladeのパス
+    })->name('verification.notice');
+
+    // 2. メール内の確認リンクをクリックしたときの遷移先（★これが足りなくてエラーになっていました）
+    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect()->route('attendance.index'); // 認証完了後にトップへリダイレクト
+    })->middleware(['signed'])->name('verification.verify');
+
+    // 3. 認証メールの再送処理
+    Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+        $request->user()->sendEmailVerificationNotification();
+        return back()->with('message', 'verification-link-sent');
+    })->middleware(['throttle:6,1'])->name('verification.send');
+
     // PG03: 勤怠登録画面（トップページ）
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::get('/', function () {

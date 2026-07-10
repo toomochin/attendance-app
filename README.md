@@ -1,97 +1,49 @@
 # 勤怠管理システム
 
-## 環境構築
+LaravelとDocker(独自コンテナ)を使用して構築した、スタッフの打刻管理および管理者による承認フローを備えた勤怠管理アプリケーションです。
 
-1. Dockerを起動する
+## アプリケーション概要
 
-2. プロジェクト直下で、以下のコマンドを実行する
+一般スタッフは日々の出退勤・休憩の打刻を行うことができ、打刻ミスがあった場合は管理者へ修正申請を送ることができます。管理者はスタッフの勤怠状況を一覧で確認し、申請に対して承認・却下を行うことができます。
 
-```bash
-make init
-```
-※Makefileを使用し、コンテナの起動、ライブラリインストール、DB構築、ストレージ権限の設定（chmod 777）を一括で行います。<br>
+## 主な機能一覧
 
-## メール認証
-開発環境ではメール確認用に Mailpit を使用しています。
-プロジェクト起動後、ブラウザで以下のURLにアクセスすると、システムから送信されたメール（会員登録時の認証メール等）を確認できます。
+### 1. 認証機能
 
-http://localhost:8025
+- 会員登録（メール認証機能付き） / ログイン・ログアウト
+- パスワードリセット機能
 
-.envファイルの設定（初期設定済み）：
+### 2. 一般スタッフ機能
 
-MAIL_HOST=mailpit
-MAIL_PORT=1025
-MAIL_FROM_ADDRESS=admin@example.com
+- 当日の打刻管理（出勤、退勤、休憩開始、休憩終了）
+  ※二重打刻防止などのバリデーション制御を実装
+- 勤怠履歴の一覧表示・月別切り替え
+- 勤怠データの修正申請機能（申請理由の入力必須）
 
-以下のリンクは公式ドキュメントです。<br>
-https://docs.stripe.com/payments/checkout?locale=ja-JP
-## テーブル仕様
-### usersテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| name | varchar(255) |  |  | ◯ |  |
-| email | varchar(255) |  | ◯ | ◯ |  |
-| password | varchar(255) |  |  | ◯ |  |
-| role | int |  |  | ◯ |  |0:一般, 1:管理者
-| created_at | timestamp |  |  |  |  |
-| updated_at | timestamp |  |  |  |  |
+### 3. 管理者機能
 
-### attendancesテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| user_id | bigint |  |  | ◯ | users(id) |
-| date | date |  |  | ◯ |  |
-| punch_in | time |  |  | ◯ |  |
-| punch_out | time |  |  |  |  |
-| break_in | time |  |  |  |  |
-| break_out | time |  |  |  |  |
-| break2_in | time |  |  |  |  |
-| break2_out | time |  |  |  |  |
+- 全スタッフの当日の勤怠状況一覧表示
+- スタッフごとの月別勤怠一覧表示、およびCSVエクスポート機能
+- スタッフからの修正申請の確認（承認 / 却下フロー）
 
-### attendance_correct_requestsテーブル
-| カラム名 | 型 | primary key | unique key | not null | foreign key |
-| --- | --- | --- | --- | --- | --- |
-| id | bigint | ◯ |  | ◯ |  |
-| attendance_id | bigint |  |  | ◯ | attendances(id) |
-| user_id | bigint |  |  | ◯ | users(id) |
-| punch_in | time |  |  | ◯ |  |
-| punch_out | time |  |  | ◯ |  |
-| break_in | time |  |  |  |  |
-| break_out | time |  |  |  |  |
-| break2_in | time |  |  |  |  |
-| break2_out | time |  |  |  |  |
-| remark | text |  |  | ◯ |  |
-| status | int |  |  | ◯ |  |
+---
 
-## ER図
-![alt](ER.png)
+## 使用技術（技術スタック）
 
-##テストアカウント
-php artisan db:seed を実行することで、以下のアカウントが作成されます。
+- **バックエンド:** PHP 8.x / Laravel 10.x
+- **データベース:** MySQL 8.0
+- **インフラ環境:** Docker / docker-compose
+- **メール確認ツール:** Mailpit
 
-管理者
-メールアドレス: admin@gmail.com
-パスワード: password
-権限: 管理者 (role: 1)
+---
 
-一般スタッフ1
-メールアドレス: general1@gmail.com
-パスワード: password
-権限: 一般 (role: 0)
+## 環境構築・起動手順
 
-一般スタッフ2
-メールアドレス: general2@gmail.com
-パスワード: password
-権限: 一般 (role: 0)
+1. **Dockerの起動**
+   お使いのPCで Docker Desktop 等を起動してください。
 
-## テストの実行
-システム全体の整合性を確認するために、以下のコマンドでテストを実行できます。
-```bash
-# 1. テスト用データベースの作成（初回のみ）
-docker-compose exec mysql mysql -u root -p -e "create database if not exists test_database;"
-# パスワードは root を入力
-
-# 2. テストの実行
-docker-compose exec php php artisan test
+2. **プロジェクトの初期化**
+   プロジェクトのルートディレクトリで、以下のコマンドを実行します。
+   ```bash
+   make init
+   ```

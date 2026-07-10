@@ -2,8 +2,9 @@ init:
 	docker-compose up -d --build
 	docker-compose exec php composer install
 	docker-compose exec php cp .env.example .env
-	mkdir ./src/storage/app/public/img
-	mv ./src/public/img/copy_storage_img/*.jpg ./src/storage/app/public/img
+	mkdir -p ./src/storage/app/public/img
+	# 画像があればコピー、なければ無視（エラーでも止めない）
+	-cp ./src/public/img/copy_storage_img/*.jpg ./src/storage/app/public/img/ 2>/dev/null || true
 	docker-compose exec php php artisan key:generate
 	docker-compose exec php php artisan storage:link
 	docker-compose exec php chmod -R 777 src/storage src/bootstrap/cache
@@ -25,5 +26,6 @@ down:
 cache:
 	docker-compose exec php php artisan cache:clear 
 	docker-compose exec php php artisan config:cache 
+
 stop:
 	docker-compose stop
