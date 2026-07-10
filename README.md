@@ -21,14 +21,29 @@ Laravel 8 で構築した勤怠管理アプリケーションです。一般ユ�
 
 ## 環境構築
 
-1. Docker を起動します。
-2. プロジェクト直下で、次のコマンドを実行します。
+Docker ビルド
 
-```bash
-make init
+1. git clone git@github.com:toomochin/attendance-app.git
+2. docker-compose up -d --build
+
+Lavaral 環境構築
+1.docker-compose exec php bash
+2.composer install
+3.cp .env.example .env
+4..env ファイルの変更
+
+```
+　DB_HOSTをmysqlに変更
+　DB_DATABASEをlaravel_dbに変更
+　DB_USERNAMEをlaravel_userに変更
+　DB_PASSWORDをlaravel_passに変更
+　MAIL_FROM_ADDRESSに送信元アドレスを設定
 ```
 
-Makefile を使用し、コンテナの起動、ライブラリのインストール、`.env` の作成、アプリケーションキーの生成、マイグレーション、シーディングを一括で行います。
+5.php artisan key:generate
+6.php artisan migrate
+7.php artisan db:seed
+8.php artisan test
 
 ## メール認証
 
