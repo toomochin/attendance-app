@@ -53,7 +53,7 @@ MAIL_FROM_ADDRESS=admin@example.com
 
 ## ER 図
 
-ER 図は [ER.png](ER.png) を参照してください。
+![alt](ER.png)
 
 ### users テーブル
 
