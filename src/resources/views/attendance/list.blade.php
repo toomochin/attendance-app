@@ -32,7 +32,7 @@
                             <span class="calendar-icon">📅</span>
                             <span style="font-size: 20px; font-weight: bold;">
                                 {{-- 💡 月情報を画面に出力します --}}
-                                {{ $currentMonth->format('Y年n月') }}
+                                {{ $currentMonth->format('Y/m') }}
                             </span>
                         </div>
                     </form>
