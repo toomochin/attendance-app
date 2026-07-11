@@ -27,10 +27,11 @@ Docker ビルド
 2. docker-compose up -d --build
 
 Lavaral 環境構築
-1.docker-compose exec php bash
-2.composer install
-3.cp .env.example .env
-4..env ファイルの変更
+
+1. docker-compose exec php bash
+2. composer install
+3. cp .env.example .env
+4. .env ファイルの変更
 
 ```
 　DB_HOSTをmysqlに変更
@@ -40,10 +41,10 @@ Lavaral 環境構築
 　MAIL_FROM_ADDRESSに送信元アドレスを設定
 ```
 
-5.php artisan key:generate
-6.php artisan migrate
-7.php artisan db:seed
-8.php artisan test
+5. php artisan key:generate
+6. php artisan migrate
+7. php artisan db:seed
+8. php artisan test
 
 ## メール認証
 
