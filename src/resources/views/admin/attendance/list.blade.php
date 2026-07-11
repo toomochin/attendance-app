@@ -21,14 +21,17 @@
                 </a>
 
                 <div class="current-date-display">
-                    <form action="{{ route('admin.attendance.list') }}" method="get" id=" date-form"
+                    <form action="{{ route('admin.attendance.list') }}" method="get" id="date-form"
                         style="display: flex; align-items: center;">
-                        <input type="date" name="date" id="date-input" value="{{ $currentDate }}" onchange="this.form.submit()"
-                            style="display: none;">
+                        <input type="date" name="date" id="date-input" value="{{ $currentDate }}"
+                            onchange="this.form.submit()" style="display: none;">
 
-                        <div onclick="document.getElementById('date-input').showPicker()" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <span class=" calendar-icon">📅</span>
+                        <div onclick="document.getElementById('date-input').showPicker()"
+                            style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <span class="calendar-icon">📅</span>
                             <span style="font-size: 20px; font-weight: bold;">
+                                {{-- 💡 選択中の日付を画面に出力します --}}
+                                {{ \Carbon\Carbon::parse($currentDate)->format('Y/m/d') }}
                             </span>
                         </div>
                     </form>
@@ -56,12 +59,14 @@
                         @foreach($attendances as $attendance)
                             <tr>
                                 <td>{{ $attendance->user->name }}</td>
-                                <td>{{ $attendance->punch_in ? date('H:i', strtotime($attendance->punch_in)) : '-' }}</td>
-                                <td>{{ $attendance->punch_out ? date('H:i', strtotime($attendance->punch_out)) : '-' }}</td>
+                                {{-- 💡 ハイフン '-' ではなく、要件通り空白 '' に修正します --}}
+                                <td>{{ $attendance->punch_in ? date('H:i', strtotime($attendance->punch_in)) : '' }}</td>
+                                <td>{{ $attendance->punch_out ? date('H:i', strtotime($attendance->punch_out)) : '' }}</td>
                                 <td>{{ $attendance->total_break }}</td>
                                 <td>{{ $attendance->total_time }}</td>
                                 <td>
-                                    <a href="{{ route('admin.attendance.detail', ['id' => $attendance->id]) }}" class="detail-link">詳細</a>
+                                    <a href="{{ route('admin.attendance.detail', ['id' => $attendance->id]) }}"
+                                        class="detail-link">詳細</a>
                                 </td>
                             </tr>
                         @endforeach

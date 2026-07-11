@@ -62,8 +62,9 @@
                         @foreach($attendances as $attendance)
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($attendance->date)->format('m/d') }}</td>
-                                <td>{{ $attendance->punch_in ? date('H:i', strtotime($attendance->punch_in)) : '-' }}</td>
-                                <td>{{ $attendance->punch_out ? date('H:i', strtotime($attendance->punch_out)) : '-' }}</td>
+                                {{-- 💡 ハイフン '-' ではなく、要件通り空白 '' に修正します --}}
+                                <td>{{ $attendance->punch_in ? date('H:i', strtotime($attendance->punch_in)) : '' }}</td>
+                                <td>{{ $attendance->punch_out ? date('H:i', strtotime($attendance->punch_out)) : '' }}</td>
                                 <td>{{ $attendance->total_break }}</td>
                                 <td>{{ $attendance->total_time }}</td>
                                 <td>
