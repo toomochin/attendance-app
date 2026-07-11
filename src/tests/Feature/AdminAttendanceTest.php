@@ -41,7 +41,6 @@ class AdminAttendanceTest extends TestCase
      */
     public function test_admin_can_see_all_users_attendance()
     {
-        // 管理者ガードを指定してアクセス
         $response = $this->actingAs($this->admin, 'admin')->get('/admin/attendance/list');
 
         $response->assertStatus(200);
@@ -59,7 +58,6 @@ class AdminAttendanceTest extends TestCase
             'punch_in' => '09:00:00',
         ]);
 
-        // 正しい管理者用ルートパス /admin/attendance/{id} を使用
         $response = $this->actingAs($this->admin, 'admin')->get("/admin/attendance/{$attendance->id}");
 
         $response->assertStatus(200);
@@ -75,22 +73,34 @@ class AdminAttendanceTest extends TestCase
             'user_id' => $this->user->id,
             'date' => Carbon::today()->format('Y-m-d'),
             'punch_in' => '09:00:00',
+            'punch_out' => '18:00:00',
         ]);
 
         $request = AttendanceCorrectRequest::create([
             'attendance_id' => $attendance->id,
             'user_id' => $this->user->id,
             'punch_in' => '10:00:00',
+            'punch_out' => '19:00:00',
+            'break_in' => '12:00:00',
+            'break_out' => '13:00:00',
             'status' => 0, // 承認待ち
             'remark' => '修正テスト',
         ]);
 
-        // 実際のルート /admin/stamp_correction_request/approve/{id} に合わせる
         $response = $this->actingAs($this->admin, 'admin')
             ->post("/admin/stamp_correction_request/approve/{$request->id}");
 
-        $response->assertStatus(302); // リダイレクトを確認
-        $this->assertEquals(1, $request->fresh()->status); // ステータスが承認済(1)か確認
+        $response->assertStatus(302);
+
+        // 💡 申請データのステータスが承認済(1)に変更されているか確認
+        $this->assertEquals(1, $request->fresh()->status);
+
+        // 💡 承認処理によって「元の勤怠データ」が申請内容通りに上書き更新されたかを徹底検証
+        $this->assertDatabaseHas('attendances', [
+            'id' => $attendance->id,
+            'punch_in' => '10:00:00',
+            'punch_out' => '19:00:00',
+        ]);
     }
 
     /**
@@ -98,7 +108,6 @@ class AdminAttendanceTest extends TestCase
      */
     public function test_admin_can_navigate_months()
     {
-        // 管理者用パスを使用
         $response = $this->actingAs($this->admin, 'admin')
             ->get('/admin/attendance/list?date=' . Carbon::now()->subDay()->format('Y-m-d'));
 

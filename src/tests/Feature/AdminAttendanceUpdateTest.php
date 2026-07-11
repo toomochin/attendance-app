@@ -84,4 +84,36 @@ class AdminAttendanceUpdateTest extends TestCase
         $response->assertSee('09:00');
         $response->assertSee('18:00');
     }
+
+    /** @test */
+    public function PG09_管理者が勤怠データを直接修正して上書き保存できる()
+    {
+        $user = User::factory()->create();
+        $attendance = Attendance::create([
+            'user_id' => $user->id,
+            'date' => '2026-04-01',
+            'punch_in' => '09:00:00',
+            'punch_out' => '18:00:00',
+        ]);
+
+        // 💡 管理者が勤怠詳細画面から更新ポストリクエストを送信して直接書き換える検証
+        $response = $this->actingAs($this->admin, 'admin')->post(route('admin.attendance.update', ['id' => $attendance->id]), [
+            'punch_in' => '10:00',
+            'punch_out' => '19:00',
+            'break_in' => '12:00',
+            'break_out' => '13:00',
+            'remark' => '管理者が直接データを修正します',
+        ]);
+
+        $response->assertRedirect(route('admin.attendance.detail', ['id' => $attendance->id]));
+
+        // 💡 データベースが直接上書き変更されているか徹底検証
+        $this->assertDatabaseHas('attendances', [
+            'id' => $attendance->id,
+            'punch_in' => '10:00:00',
+            'punch_out' => '19:00:00',
+            'break_in' => '12:00:00',
+            'break_out' => '13:00:00',
+        ]);
+    }
 }

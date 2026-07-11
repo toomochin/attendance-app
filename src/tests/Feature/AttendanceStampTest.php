@@ -24,7 +24,6 @@ class AttendanceStampTest extends TestCase
     public function PG01_現在の日時が正しい形式で表示されている()
     {
         $now = Carbon::now();
-        // 画面定義書のパス /attendance へアクセス
         $response = $this->actingAs($this->user)->get('/attendance');
 
         $response->assertStatus(200);
@@ -36,7 +35,7 @@ class AttendanceStampTest extends TestCase
     public function PG01_ステータスが勤務外の場合に正しく表示され出勤ボタンが機能する()
     {
         $response = $this->actingAs($this->user)->get('/attendance');
-        $response->assertSee('勤務外'); // テスト期待値
+        $response->assertSee('勤務外');
         $response->assertSee('出勤');
 
         $this->actingAs($this->user)->post(route('attendance.stamp'), ['type' => 'punch_in']);
@@ -63,6 +62,22 @@ class AttendanceStampTest extends TestCase
     }
 
     /** @test */
+    public function PG01_退勤ボタンを押下すると退勤データが正しく保存される()
+    {
+        $attendance = Attendance::create([
+            'user_id' => $this->user->id,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'punch_in' => '09:00:00',
+        ]);
+
+        // 💡 実際に退勤打刻のポストリクエストを送信してデータが更新されるか検証
+        $this->actingAs($this->user)->post(route('attendance.stamp'), ['type' => 'punch_out']);
+
+        $updatedAttendance = Attendance::find($attendance->id);
+        $this->assertNotNull($updatedAttendance->punch_out);
+    }
+
+    /** @test */
     public function PG01_休憩中はステータスが休憩中になり休憩戻ボタンが表示される()
     {
         Attendance::create([
@@ -78,6 +93,26 @@ class AttendanceStampTest extends TestCase
     }
 
     /** @test */
+    public function PG01_休憩入ボタンと休憩戻ボタンが正しく機能しデータが保存される()
+    {
+        $attendance = Attendance::create([
+            'user_id' => $this->user->id,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'punch_in' => '09:00:00',
+        ]);
+
+        // 💡 休憩入アクションの検証
+        $this->actingAs($this->user)->post(route('attendance.stamp'), ['type' => 'break_in']);
+        $updatedBreakIn = Attendance::find($attendance->id);
+        $this->assertNotNull($updatedBreakIn->break_in);
+
+        // 💡 休憩戻アクションの検証
+        $this->actingAs($this->user)->post(route('attendance.stamp'), ['type' => 'break_out']);
+        $updatedBreakOut = Attendance::find($attendance->id);
+        $this->assertNotNull($updatedBreakOut->break_out);
+    }
+
+    /** @test */
     public function PG01_退勤後はステータスが退勤済になり出勤ボタンが表示されない()
     {
         Attendance::create([
@@ -88,7 +123,7 @@ class AttendanceStampTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)->get('/attendance');
-        $response->assertSee('退勤済'); // テスト期待値
+        $response->assertSee('退勤済');
         $response->assertDontSee('出勤');
     }
 }

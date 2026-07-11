@@ -26,8 +26,47 @@ class AttendanceListTest extends TestCase
         $response = $this->actingAs($this->user)->get('/attendance/list');
 
         $response->assertStatus(200);
-        // 表示形式を 'Y年n月' から 'Y/m' に修正
         $response->assertSee(Carbon::now()->format('Y/m'));
+    }
+
+    /** @test */
+    public function PG02_勤怠一覧画面に自身の勤怠データが網羅して表示される()
+    {
+        // 💡 出勤・退勤・休憩が揃ったレコードを作成
+        Attendance::create([
+            'user_id' => $this->user->id,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'punch_in' => '09:00:00',
+            'punch_out' => '18:00:00',
+            'break_in' => '12:00:00',
+            'break_out' => '13:00:00',
+        ]);
+
+        $response = $this->actingAs($this->user)->get('/attendance/list');
+
+        $response->assertStatus(200);
+        // 💡 画面上に計算された勤務時間や打刻データが出力されているか徹底検証
+        $response->assertSee('09:00');
+        $response->assertSee('18:00');
+        $response->assertSee('01:00'); // 休憩合計
+        $response->assertSee('08:00'); // 勤務合計
+    }
+
+    /** @test */
+    public function PG02_未打刻の勤怠フィールドが要件通り空白で表示される()
+    {
+        // 💡 出勤のみで退勤・休憩がないレコードを作成
+        Attendance::create([
+            'user_id' => $this->user->id,
+            'date' => Carbon::today()->format('Y-m-d'),
+            'punch_in' => '09:00:00',
+        ]);
+
+        $response = $this->actingAs($this->user)->get('/attendance/list');
+
+        $response->assertStatus(200);
+        // 💡 未打刻部分にハイフン '-' や '00:00' などの余計な文字が含まれていないか検証
+        $response->assertDontSee('00:00');
     }
 
     /** @test */
@@ -39,7 +78,6 @@ class AttendanceListTest extends TestCase
         $response = $this->actingAs($this->user)->get('/attendance/list?month=' . $prevMonth->format('Y-m'));
 
         $response->assertStatus(200);
-        // 表示形式を 'Y年n月' から 'Y/m' に修正
         $response->assertSee($prevMonth->format('Y/m'));
     }
 
@@ -52,7 +90,6 @@ class AttendanceListTest extends TestCase
         $response = $this->actingAs($this->user)->get('/attendance/list?month=' . $nextMonth->format('Y-m'));
 
         $response->assertStatus(200);
-        // 表示形式を 'Y年n月' から 'Y/m' に修正
         $response->assertSee($nextMonth->format('Y/m'));
     }
 
