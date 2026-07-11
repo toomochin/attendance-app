@@ -7,25 +7,28 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 /*
 | 一般ユーザー用ルート
 */
 Route::middleware(['auth'])->group(function () {
 
-    // 1. メール認証待ち画面（通知画面）
+    // 1. メール認証待ち画面
     Route::get('/email/verify', function () {
-        return view('auth.verify-email'); // 👈 作成した、または用意されているBladeのパス
+        return view('auth.verify-email');
     })->name('verification.notice');
 
-    // 2. メール内の確認リンクをクリックしたときの遷移先（★これが足りなくてエラーになっていました）
-    Route::get('/email/verify/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+    // 2. メール内の確認リンクをクリックしたときの遷移先
+    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
         $request->fulfill();
-        return redirect()->route('attendance.index'); // 認証完了後にトップへリダイレクト
+        return redirect()->route('attendance.index');
     })->middleware(['signed'])->name('verification.verify');
 
     // 3. 認証メールの再送処理
-    Route::post('/email/verification-notification', function (\Illuminate\Http\Request $request) {
+    Route::post('/email/verification-notification', function (Request $request) {
         $request->user()->sendEmailVerificationNotification();
         return back()->with('message', 'verification-link-sent');
     })->middleware(['throttle:6,1'])->name('verification.send');
@@ -42,7 +45,7 @@ Route::middleware(['auth'])->group(function () {
     // PG04: 勤怠一覧画面
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
 
-    // PG05: 勤怠詳細画面（要件通りのパス: /attendance/detail/{id}）
+    // PG05: 勤怠詳細画面
     Route::get('/attendance/detail/{id}', [AttendanceController::class, 'show'])->name('attendance.detail');
     Route::post('/attendance/detail/{id}', [AttendanceController::class, 'update'])->name('attendance.update');
 
@@ -84,16 +87,13 @@ Route::prefix('admin')->group(function () {
 
 /*
 | 共通ルート（PG06 / PG12: 申請一覧画面）
-| 要件: 一般ユーザーと管理者で同じパスを使用する
 */
 Route::middleware(['auth:web,admin'])->group(function () {
     // PG06 & PG12: 申請一覧画面
     Route::get('/stamp_correction_request/list', function () {
         if (Auth::guard('admin')->check()) {
-            // 管理者の場合は管理者のコントローラーへ
             return app(AdminRequestController::class)->index(request());
         }
-        // 一般ユーザーの場合は一般のコントローラーへ
         return app(AttendanceController::class)->requestList(request());
     })->name('request.list');
 });
