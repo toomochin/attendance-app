@@ -35,22 +35,18 @@ class AdminAttendanceController extends Controller
             'nextDate' => $nextDate,
         ]);
     }
+
     /**
      * PG09: 勤怠詳細画面（管理者）
-     * 特定の勤怠データの詳細を表示し、修正・承認のベースとなります
      */
     public function show($id)
     {
-        // 勤怠データを取得
         $attendance = Attendance::with('user')->findOrFail($id);
 
-        // その勤怠に対して「承認待ち」の修正申請があるか確認
         $pendingRequest = \App\Models\AttendanceCorrectRequest::where('attendance_id', $id)
             ->where('status', 0)
             ->first();
 
-        // 管理者用の詳細表示Viewを返す
-        // ※View名はご自身の環境に合わせてください（例: admin.attendance.detail）
         return view('admin.attendance.detail', compact('attendance', 'pendingRequest'));
     }
 
@@ -59,14 +55,9 @@ class AdminAttendanceController extends Controller
      */
     public function approve(Request $request, $attendance_correct_request_id)
     {
-        // 1. 申請データを取得
         $correctRequest = \App\Models\AttendanceCorrectRequest::findOrFail($attendance_correct_request_id);
-
-        // 2. 反映先となる元の勤怠データを取得
         $attendance = Attendance::findOrFail($correctRequest->attendance_id);
 
-        // 3. 勤怠データを申請内容で更新
-        // ここでマイグレーション後の新カラム名（in/out）を正確に指定します
         $attendance->update([
             'punch_in' => $correctRequest->punch_in,
             'punch_out' => $correctRequest->punch_out,
@@ -77,12 +68,11 @@ class AdminAttendanceController extends Controller
             'remark' => $correctRequest->remark,
         ]);
 
-        // 4. 申請ステータスを「1: 承認済み」に変更
         $correctRequest->update(['status' => 1]);
 
-        // 5. 承認完了後、申請一覧画面へ戻る
         return redirect()->route('admin.request.list')->with('success', '修正申請を承認しました');
     }
+
     /**
      * PG11: スタッフ別勤怠一覧画面（管理者）
      */
@@ -111,28 +101,37 @@ class AdminAttendanceController extends Controller
             'nextMonth' => $nextMonth,
         ]);
     }
+
     /**
      * 勤怠データの更新処理
      */
     public function update(Request $request, $id)
     {
-        // 管理者による修正時のバリデーション
+        // 💡 管理者による修正時のバリデーションを要件（FN039）に完全一致させます
         $request->validate([
-            'punch_in' => 'required',
-            'punch_out' => 'required|after:punch_in',
-            'break_in' => 'nullable|after:punch_in|before:punch_out',
-            'break_out' => 'nullable|after:break_in|before:punch_out',
-            'remark' => 'required|string|max:255',
+            'punch_in' => ['required', 'date_format:H:i'],
+            'punch_out' => ['required', 'date_format:H:i', 'after:punch_in'],
+            'break_in' => ['nullable', 'date_format:H:i', 'after:punch_in', 'before:punch_out'],
+            'break_out' => ['nullable', 'date_format:H:i', 'after:break_in', 'before:punch_out'],
+            'remark' => ['required', 'string', 'max:255'],
         ], [
-            'punch_out.after' => '出勤時刻より後の時刻を入力してください',
-            'break_in.after' => '休憩開始は出勤時刻より後の時刻を入力してください',
-            'break_in.before' => '休憩開始は退勤時刻より前の時刻を入力してください',
-            'break_out.after' => '休憩終了は休憩開始より後の時刻を入力してください',
-            'break_out.before' => '休憩終了は退勤時刻より前の時刻を入力してください',
+            'punch_in.required' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_in.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.required' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.after' => '出勤時間もしくは退勤時間が不適切な値です',
+
+            'break_in.date_format' => '休憩時間が不適切な値です',
+            'break_in.after' => '休憩時間が不適切な値です',
+            'break_in.before' => '休憩時間が不適切な値です',
+
+            'break_out.date_format' => '休憩時間が不適切な値です',
+            'break_out.after' => '休憩時間が不適切な値です',
+            'break_out.before' => '休憩時間もしくは退勤時間が不適切な値です',
+
             'remark.required' => '備考を記入してください',
         ]);
 
-        // 保存処理（管理者なので申請を通さず直接上書き）
         $attendance = Attendance::findOrFail($id);
         $attendance->update([
             'punch_in' => $request->punch_in,
@@ -144,6 +143,7 @@ class AdminAttendanceController extends Controller
         return redirect()->route('admin.attendance.detail', ['id' => $id])
             ->with('success', '勤怠データを修正しました');
     }
+
     private function calculateTotalTimes($attendance)
     {
         // 休憩1の分数
@@ -156,7 +156,13 @@ class AdminAttendanceController extends Controller
 
         // 合計休憩時間
         $totalBreakMinutes = $break1 + $break2;
-        $attendance->total_break = sprintf('%02d:%02d', floor($totalBreakMinutes / 60), $totalBreakMinutes % 60);
+
+        // 💡 休憩データが全く無ければ「有」「00:00」ではなく空白にする要件に対応
+        if ($totalBreakMinutes > 0) {
+            $attendance->total_break = sprintf('%02d:%02d', floor($totalBreakMinutes / 60), $totalBreakMinutes % 60);
+        } else {
+            $attendance->total_break = '';
+        }
 
         // 合計勤務時間 (退勤 - 出勤 - 休憩合計)
         if ($attendance->punch_in && $attendance->punch_out) {
@@ -164,7 +170,8 @@ class AdminAttendanceController extends Controller
             $actualWorkMinutes = max(0, $workMinutes - $totalBreakMinutes);
             $attendance->total_time = sprintf('%02d:%02d', floor($actualWorkMinutes / 60), $actualWorkMinutes % 60);
         } else {
-            $attendance->total_time = '-';
+            // 💡 ハイフン「-」ではなく要件通り「空白」にします
+            $attendance->total_time = '';
         }
 
         return $attendance;
@@ -173,16 +180,13 @@ class AdminAttendanceController extends Controller
     public function exportCsv($id)
     {
         $user = User::findOrFail($id);
-        // そのユーザーの全勤怠データを取得
         $attendances = Attendance::where('user_id', $id)->orderBy('date', 'desc')->get();
 
         $response = new StreamedResponse(function () use ($attendances, $user) {
             $handle = fopen('php://output', 'w');
 
-            // 文字化け防止（Excel用）
             fputs($handle, $bom = chr(0xEF) . chr(0xBB) . chr(0xBF));
 
-            // ヘッダー
             fputcsv($handle, ['日付', '出勤', '退勤', '休憩合計', '勤務合計', '備考']);
 
             foreach ($attendances as $attendance) {

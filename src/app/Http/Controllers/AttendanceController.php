@@ -75,7 +75,10 @@ class AttendanceController extends Controller
 
         $attendances = Attendance::where('user_id', $user->id)
             ->where('date', 'like', $month . '%')
-            ->orderBy('date', 'asc')->get();
+            ->orderBy('date', 'asc')->get()
+            ->map(function ($attendance) {
+                return $this->calculateTotalTimes($attendance);
+            });
 
         $prevMonth = $currentMonth->copy()->subMonth()->format('Y-m');
         $nextMonth = $currentMonth->copy()->addMonth()->format('Y-m');
@@ -97,18 +100,32 @@ class AttendanceController extends Controller
     }
 
     /**
-     * PG03: 修正申請送信 (テストが期待するメソッド名)
+     * PG03: 修正申請送信
      */
     public function update(Request $request, $id)
     {
+        // 💡 一般ユーザー側の修正申請バリデーションを要件（FN029）に完全一致させます
         $request->validate([
-            'punch_in' => 'required',
-            'punch_out' => 'required|after:punch_in',
-            'break_in' => 'nullable|after:punch_in|before:punch_out',
-            'break_out' => 'nullable|after:break_in|before:punch_out',
-            'remark' => 'required|string|max:255',
+            'punch_in' => ['required', 'date_format:H:i'],
+            'punch_out' => ['required', 'date_format:H:i', 'after:punch_in'],
+            'break_in' => ['nullable', 'date_format:H:i', 'after:punch_in', 'before:punch_out'],
+            'break_out' => ['nullable', 'date_format:H:i', 'after:break_in', 'before:punch_out'],
+            'remark' => ['required', 'string', 'max:255'],
         ], [
-            'punch_out.after' => '出勤時刻より後の時刻を入力してください',
+            'punch_in.required' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_in.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.required' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.date_format' => '出勤時間もしくは退勤時間が不適切な値です',
+            'punch_out.after' => '出勤時間もしくは退勤時間が不適切な値です',
+
+            'break_in.date_format' => '休憩時間が不適切な値です',
+            'break_in.after' => '休憩時間が不適切な値です',
+            'break_in.before' => '休憩時間が不適切な値です',
+
+            'break_out.date_format' => '休憩時間が不適切な値です',
+            'break_out.after' => '休憩時間が不適切な値です',
+            'break_out.before' => '休憩時間もしくは退勤時間が不適切な値です',
+
             'remark.required' => '備考を記入してください',
         ]);
 
@@ -127,7 +144,7 @@ class AttendanceController extends Controller
     }
 
     /**
-     * PG04: 自分の申請一覧表示 (テストが期待するメソッド名)
+     * PG04: 自分の申請一覧表示
      */
     public function requestList(Request $request)
     {
@@ -139,5 +156,35 @@ class AttendanceController extends Controller
             ->orderBy('created_at', 'desc')->get();
 
         return view('attendance.request_list', compact('requests', 'status'));
+    }
+
+    /**
+     * 💡 空白対応を含めた時間計算メソッドを追加
+     */
+    private function calculateTotalTimes($attendance)
+    {
+        $break1 = ($attendance->break_in && $attendance->break_out)
+            ? Carbon::parse($attendance->break_in)->diffInMinutes(Carbon::parse($attendance->break_out)) : 0;
+
+        $break2 = ($attendance->break2_in && $attendance->break2_out)
+            ? Carbon::parse($attendance->break2_in)->diffInMinutes(Carbon::parse($attendance->break2_out)) : 0;
+
+        $totalBreakMinutes = $break1 + $break2;
+
+        if ($totalBreakMinutes > 0) {
+            $attendance->total_break = sprintf('%02d:%02d', floor($totalBreakMinutes / 60), $totalBreakMinutes % 60);
+        } else {
+            $attendance->total_break = '';
+        }
+
+        if ($attendance->punch_in && $attendance->punch_out) {
+            $workMinutes = Carbon::parse($attendance->punch_in)->diffInMinutes(Carbon::parse($attendance->punch_out));
+            $actualWorkMinutes = max(0, $workMinutes - $totalBreakMinutes);
+            $attendance->total_time = sprintf('%02d:%02d', floor($actualWorkMinutes / 60), $actualWorkMinutes % 60);
+        } else {
+            $attendance->total_time = '';
+        }
+
+        return $attendance;
     }
 }

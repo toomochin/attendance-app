@@ -31,6 +31,8 @@
                             style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <span class="calendar-icon">📅</span>
                             <span style="font-size: 20px; font-weight: bold;">
+                                {{-- 💡 月情報を画面に出力します --}}
+                                {{ $currentMonth->format('Y年n月') }}
                             </span>
                         </div>
                     </form>
@@ -54,23 +56,58 @@
                     </thead>
                     <tbody>
                         @foreach($attendances as $attendance)
+                            @php
+                                // 各種時間の計算ロジック
+                                $totalBreakMinutes = 0;
+
+                                // 休憩1の計算
+                                if ($attendance->break_in && $attendance->break_out) {
+                                    $breakIn = \Carbon\Carbon::parse($attendance->break_in);
+                                    $breakOut = \Carbon\Carbon::parse($attendance->break_out);
+                                    $totalBreakMinutes += $breakOut->diffInMinutes($breakIn);
+                                }
+
+                                // 休憩2の計算
+                                if ($attendance->break2_in && $attendance->break2_out) {
+                                    $break2In = \Carbon\Carbon::parse($attendance->break2_in);
+                                    $break2Out = \Carbon\Carbon::parse($attendance->break2_out);
+                                    $totalBreakMinutes += $break2Out->diffInMinutes($break2In);
+                                }
+
+                                // 休憩合計時間のフォーマット（休憩がなければ空白）
+                                $breakTimeStr = '';
+                                if ($totalBreakMinutes > 0) {
+                                    $hours = floor($totalBreakMinutes / 60);
+                                    $minutes = $totalBreakMinutes % 60;
+                                    $breakTimeStr = sprintf('%02d:%02d', $hours, $minutes);
+                                }
+
+                                // 勤務合計時間の計算（出勤・退勤が揃っている場合のみ）
+                                $totalWorkStr = '';
+                                if ($attendance->punch_in && $attendance->punch_out) {
+                                    $punchIn = \Carbon\Carbon::parse($attendance->punch_in);
+                                    $punchOut = \Carbon\Carbon::parse($attendance->punch_out);
+                                    $stayMinutes = $punchOut->diffInMinutes($punchIn);
+
+                                    // 滞在時間から休憩時間を引く
+                                    $workMinutes = $stayMinutes - $totalBreakMinutes;
+                                    if ($workMinutes < 0) {
+                                        $workMinutes = 0;
+                                    }
+
+                                    $wHours = floor($workMinutes / 60);
+                                    $wMinutes = $workMinutes % 60;
+                                    $totalWorkStr = sprintf('%02d:%02d', $wHours, $wMinutes);
+                                }
+                            @endphp
                             <tr>
                                 <td>{{ \Carbon\Carbon::parse($attendance->date)->format('m/d') }}</td>
+                                {{-- 💡 データがない場合は三項演算子で '' (空白) を徹底します --}}
                                 <td>{{ $attendance->punch_in ? date('H:i', strtotime($attendance->punch_in)) : '' }}</td>
                                 <td>{{ $attendance->punch_out ? date('H:i', strtotime($attendance->punch_out)) : '' }}</td>
+                                <td>{{ $breakTimeStr }}</td>
+                                <td>{{ $totalWorkStr }}</td>
                                 <td>
-                                    @php
-    // 休憩時間の合計計算（分単位などのロジックは後ほど追加可能）
-    // ここではシンプルに1回目と2回目があるかを表示
-    $break1 = $attendance->break_start ? '有' : '-';
-                                    @endphp
-                                    {{ $break1 }}
-                                </td>
-                                <td>
-                                    {{-- 勤務合計時間の表示ロジック（必要であれば） --}}
-                                </td>
-                                <td>
-                                    {{-- PG03: 勤怠詳細画面へのリンク --}}
                                     <a href="{{ route('attendance.detail', ['id' => $attendance->id]) }}"
                                         class="detail-link">詳細</a>
                                 </td>
